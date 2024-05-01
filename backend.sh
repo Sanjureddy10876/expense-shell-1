@@ -52,9 +52,11 @@ systemctl enable backend &>> "$LOGFILE" || VALIDATE $? "Enabling backend service
 
 # Install MySQL
 dnf install mysql -y &>> "$LOGFILE" || VALIDATE $? "Installing MySQL"
-
-# Import MySQL schema
-mysql -h db.santhosh78s.online -uroot -p"${mysql_root_password}" < /app/schema/backend.sql &>> "$LOGFILE" || VALIDATE $? "Importing MySQL schema"
+# Import MySQL schema and log any errors
+mysql -h db.santhosh78s.online -uroot -p"${mysql_root_password}" < /app/schema/backend.sql &>> "$LOGFILE" || { 
+    VALIDATE $? "Importing MySQL schema"
+    exit 1
+}
 
 # Restart backend service
 systemctl restart backend &>> "$LOGFILE" || VALIDATE $? "Restarting backend service"
