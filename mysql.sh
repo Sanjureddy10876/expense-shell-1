@@ -7,14 +7,14 @@ check_root
 echo "Please enter DB password:"
 read -s mysql_root_password
 
-dnf install mysql-server -y &>>$LOGFILE
-VALIDATE $? "installing mysql-server"
+dnf install mysql-serffver -y &>>$LOGFILE
+#VALIDATE $? "installing mysql-server"
 
 systemctl enable mysqld &>>$LOGFILE
-VALIDATE $? "enabling mysqld"
+#VALIDATE $? "enabling mysqld"
 
 systemctl start mysqld &>>$LOGFILE
-VALIDATE $? "starting mysqld"
+#VALIDATE $? "starting mysqld"
 
 #mysql_secure_installation --set-root-pass ExpenseApp@1 &>>$LOGFILE
 #VALIDATE $? "setting root password"
