@@ -1,62 +1,47 @@
 #!/bin/bash
 
-# Source common functions
 source ./common.sh
+check_root
 
-# Check if script is run as root
-check_root || exit 1
+dnf module disable nodejs -y &>>$LOGFILE
 
-# Disable existing Node.js module
-dnf module disable nodejs -y &>> "$LOGFILE" || VALIDATE $? "Disabling Node.js module"
+dnf module enable nodejs:20 -y &>>$LOGFILE
 
-# Enable Node.js module version 20
-dnf module enable nodejs:20 -y &>> "$LOGFILE" || VALIDATE $? "Enabling Node.js module"
 
-# Install Node.js
-dnf install nodejs -y &>> "$LOGFILE" || VALIDATE $? "Installing Node.js"
+dnf install nodejs -y &>>$LOGFILE
 
-# Check if user 'expense' exists
-id expense &>> "$LOGFILE"
-if [ $? -ne 0 ]; then
-    # Create user 'expense' if it doesn't exist
-    useradd expense &>> "$LOGFILE" || VALIDATE $? "Creating user 'expense'"
-else
-    echo -e "User 'expense' already created. Skipping."
+id expense &>>$LOGFILE
+if [ $? -ne 0]
+then 
+    useradd expense &>>$LOGFILE
+else 
+    echo -e "user expense already created.. $Y SKIPPING $N"
 fi
 
-# Create directory /app if it doesn't exist
-mkdir -p /app &>> "$LOGFILE" || VALIDATE $? "Creating directory /app"
 
-# Download backend code
-curl -o /tmp/backend.zip https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip &>> "$LOGFILE" || VALIDATE $? "Downloading backend code"
+mkdir -p /app &>>$LOGFILE
 
-# Extract backend code to /app
-cd /app &>> "$LOGFILE" || VALIDATE $? "Changing directory to /app"
-rm -rf /app/* &>> "$LOGFILE" || VALIDATE $? "Removing existing files in /app"
-unzip -o /tmp/backend.zip &>> "$LOGFILE" || VALIDATE $? "Unzipping backend code"
+curl -o /tmp/backend.zip https://expense-builds.s3.us-east-1.amazonaws.com/expense-backend-v2.zip 
+&>>$LOGFILE
 
-# Install Node.js dependencies
-npm install &>> "$LOGFILE" || VALIDATE $? "Installing Node.js dependencies"
+cd /app &>>$LOGFILE
+rm -rf /app/* &>>$LOGFILE
 
-# Copy systemd service file
-cp /home/ec2-user/expense-shell-1/backend.service /etc/systemd/system/backend.service &>> "$LOGFILE" || VALIDATE $? "Copying systemd service file"
+unzip -o /tmp/backend.zip &>>$LOGFILE
+VALIDATE $? "Unzipping backend"
+ 
+npm install &>>$LOGFILE
 
-# Reload systemd daemon
-systemctl daemon-reload &>> "$LOGFILE" || VALIDATE $? "Reloading systemd daemon"
+cp /home/ec2-user/expense-shell-1/backend.service /etc/systemd/system/backend.service &>>$LOGFILE
 
-# Start backend service
-systemctl start backend &>> "$LOGFILE" || VALIDATE $? "Starting backend service"
+systemctl daemon-reload &>>$LOGFILE
 
-# Enable backend service to start on boot
-systemctl enable backend &>> "$LOGFILE" || VALIDATE $? "Enabling backend service"
+systemctl start backend &>>$LOGFILE
 
-# Install MySQL
-dnf install mysql -y &>> "$LOGFILE" || VALIDATE $? "Installing MySQL"
-# Import MySQL schema and log any errors
-mysql -h db.santhosh78s.online -uroot -p"${mysql_root_password}" < /app/schema/backend.sql &>> "$LOGFILE" || { 
-    VALIDATE $? "Importing MySQL schema"
-    exit 1
-}
+systemctl enable backend &>>$LOGFILE
 
-# Restart backend service
-systemctl restart backend &>> "$LOGFILE" || VALIDATE $? "Restarting backend service"
+dnf install mysql -y &>>$LOGFILE
+
+mysql -h db.santhosh78s.online -uroot -p${mysql_root_password} < /app/schema/backend.sql &>>$LOGFILE
+
+systemctl restart backend &>>$LOGFILE
