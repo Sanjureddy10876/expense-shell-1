@@ -15,8 +15,6 @@ C="\e[36m"
 W="\e[37m"
 N="\033[0m"
 
-echo "Please Enter DB password:"
-read -s mysql_root_password
 
 VALIDATE(){
     if [ $1 -ne 0 ]
