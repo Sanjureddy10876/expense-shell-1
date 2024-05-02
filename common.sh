@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#set -e 
+set -e 
 
-#handle_error(){
-#     echo "Error occured at line number: $1, error command: $2"
-#}
-#trap 'handle_error ${LINENO} "$BASH_COMMAND"' ERR
+handle_error(){
+     echo "Error occured at line number: $1, error command: $2"
+}
+trap 'handle_error ${LINENO} "$BASH_COMMAND"' ERR
 
 
 USERID=$(id -u)
@@ -19,8 +19,7 @@ B="\e[34m"
 P="\e[35m"
 C="\e[36m"
 W="\e[37m"
-N="\033[0m"
-
+N="\e[0m"
 
 VALIDATE(){
     if [ $1 -ne 0 ]
